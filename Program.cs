@@ -27,7 +27,14 @@ namespace AzureUpload
 
             container.CreateIfNotExists();
 
-            string[] fileEntries = Directory.GetFiles(localFolder);
+            foreach (var blockblob in container.ListBlobs())
+            {
+                CloudBlockBlob b = (CloudBlockBlob) blockblob;
+                string path = localFolder + "\\" + b.Name;
+                DownloadBlob(b, path);
+            }
+
+            /*string[] fileEntries = Directory.GetFiles(localFolder);
             foreach (string filePath in fileEntries)
             {
                 string key = DateTime.UtcNow.ToString("yyyy-MM-dd-HH:mm:ss") + "-" + Path.GetFileName(filePath);
@@ -35,7 +42,7 @@ namespace AzureUpload
             }
 
             Console.WriteLine(@"upload processing complete");
-            Console.ReadKey();
+            Console.ReadKey();*/
 
         }
 
@@ -53,6 +60,15 @@ namespace AzureUpload
             if (deleteAfter)
                 File.Delete(filename);
 
+        }
+
+        static void DownloadBlob(CloudBlockBlob b, string path)
+        {
+            Console.Write(path);
+            using (var fileStream = System.IO.File.OpenWrite(path))
+            {
+                b.DownloadToStream(fileStream);
+            } 
         }
     }
 }
