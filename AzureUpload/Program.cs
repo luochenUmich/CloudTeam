@@ -13,45 +13,54 @@ namespace AzureUpload
 {
     class Program
     {
+        static string connString;
+        static string localFolder;
+        static string destContainter;
+        static DateTime prevTime;
+        static CloudStorageAccount storage_account;
+        static CloudBlobClient blob_client;
+        static CloudBlobContainer container;
+
         static void Main(string[] args)
         {
-            string connString = ConfigurationManager.ConnectionStrings["AzureStorageAccount"].ConnectionString;
-            string localFolder = ConfigurationManager.AppSettings["sourceFolder"];
-            string destContainter = ConfigurationManager.AppSettings["destContainer"];
-            DateTime prevTime = DateTime.Now; // Timestamp to start analyze
+            connString = ConfigurationManager.ConnectionStrings["AzureStorageAccount"].ConnectionString;
+            localFolder = ConfigurationManager.AppSettings["sourceFolder"];
+            destContainter = ConfigurationManager.AppSettings["destContainer"];
+            DateTime prevTime = new DateTime(2015, 3, 13); // Timestamp to start analyze
 
 
-            Console.Write(@"connect to the account");
-            CloudStorageAccount sa = CloudStorageAccount.Parse(connString);
-            CloudBlobClient bc = sa.CreateCloudBlobClient();
+            Console.Write("connect to the account \n");
+            storage_account = CloudStorageAccount.Parse(connString);
+            blob_client = storage_account.CreateCloudBlobClient();
 
-            Console.Write(@"get reference to con");
-            CloudBlobContainer container = bc.GetContainerReference(destContainter);
+            Console.Write("get reference to container \n");
+            container = blob_client.GetContainerReference(destContainter);
 
             container.CreateIfNotExists();
-            while(true)
+
+            System.Threading.Thread downloadThread = new System.Threading.Thread(downloadFile);
+            System.Threading.Thread uploadThread = new System.Threading.Thread(uploadFile);
+            downloadThread.Start();
+            uploadThread.Start();
+        }
+
+        static void downloadFile()
+        {
+            while (true)
             {
                 System.Threading.Thread.Sleep(5000);
                 foreach (var blockblob in container.ListBlobs())
                 {
-                    CloudBlockBlob b = (CloudBlockBlob) blockblob;
+                    CloudBlockBlob b = (CloudBlockBlob)blockblob;
                     string path = localFolder + "\\" + b.Name;
                     DownloadBlob(b, path, prevTime);
                 }
                 prevTime = DateTime.Now;
             }
- 
+        }
 
-            /*string[] fileEntries = Directory.GetFiles(localFolder);
-            foreach (string filePath in fileEntries)
-            {
-                string key = DateTime.UtcNow.ToString("yyyy-MM-dd-HH:mm:ss") + "-" + Path.GetFileName(filePath);
-                UploadBlob(container, key, filePath, false);
-            }
-
-            Console.WriteLine(@"upload processing complete");
-            Console.ReadKey();*/
-
+        static void uploadFile()
+        {
         }
 
         static void UploadBlob(CloudBlobContainer container, string key, string filename, bool deleteAfter)
@@ -72,11 +81,19 @@ namespace AzureUpload
 
         static void DownloadBlob(CloudBlockBlob b, string path, DateTime currTime)
         {
-            Console.Write(path);
+            
             BlobRequestOptions option = new BlobRequestOptions();
             using (var fileStream = System.IO.File.OpenWrite(path))
             {
-                b.DownloadToStream(fileStream, AccessCondition.GenerateIfModifiedSinceCondition(currTime.ToLocalTime()));
+                try
+                {
+                    b.DownloadToStream(fileStream, AccessCondition.GenerateIfModifiedSinceCondition(currTime.ToLocalTime()));
+                    Console.Write("Download to " + path + "\n");
+                }
+                catch(Microsoft.WindowsAzure.Storage.StorageException)
+                {
+                    Console.Write("No new file to download \n");
+                }
             }
         }
     }
