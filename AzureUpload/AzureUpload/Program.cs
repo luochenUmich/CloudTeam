@@ -14,10 +14,10 @@ namespace AzureUpload
     class Program
     {
         static string connString;
-        static string localFolder;
+        static string downFolder;
         static string upFolder;
-        static string destContainter;
-        static string localContainer;
+        static string upContainter;
+        static string downContainer;
 
         static DateTime prevTime;
         static CloudStorageAccount storage_account;
@@ -28,10 +28,10 @@ namespace AzureUpload
         static void Main(string[] args)
         {
             connString = ConfigurationManager.ConnectionStrings["AzureStorageAccount"].ConnectionString;
-            localFolder = ConfigurationManager.AppSettings["sourceFolder"];
+            downFolder = ConfigurationManager.AppSettings["downFolder"];
             upFolder = ConfigurationManager.AppSettings["upFolder"];
-            destContainter = ConfigurationManager.AppSettings["destContainer"];
-            localContainer = ConfigurationManager.AppSettings["localContainer"];
+            upContainter = ConfigurationManager.AppSettings["destContainer"];
+            downContainer = ConfigurationManager.AppSettings["localContainer"];
             DateTime prevTime = new DateTime(2015, 3, 13); // Timestamp to start analyze
 
 
@@ -40,11 +40,12 @@ namespace AzureUpload
             blob_client = storage_account.CreateCloudBlobClient();
 
             Console.Write("get reference to container \n");
-            container_down = blob_client.GetContainerReference(destContainter);
-            container_up = blob_client.GetContainerReference(localContainer);
+            container_down = blob_client.GetContainerReference(downContainer);
+            container_up = blob_client.GetContainerReference(upContainter);
 
 
             container_down.CreateIfNotExists();
+            container_up.CreateIfNotExists();
 
             System.Threading.Thread downloadThread = new System.Threading.Thread(downloadFile);
             System.Threading.Thread uploadThread = new System.Threading.Thread(uploadFile);
@@ -60,7 +61,7 @@ namespace AzureUpload
                 foreach (var blockblob in container_down.ListBlobs())
                 {
                     CloudBlockBlob b = (CloudBlockBlob)blockblob;
-                    string path = localFolder + "\\" + b.Name;
+                    string path = downFolder + "\\" + b.Name;
                     DownloadBlob(b, path, prevTime);
                 }
                 prevTime = DateTime.Now;
