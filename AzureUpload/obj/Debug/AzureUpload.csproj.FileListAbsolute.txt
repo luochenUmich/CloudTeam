@@ -108,3 +108,6 @@ C:\Users\Chen\Desktop\CloudTeam\AzureUpload\AzureUpload\bin\Debug\ru\System.Spat
 C:\Users\Chen\Desktop\CloudTeam\AzureUpload\AzureUpload\bin\Debug\zh-Hans\System.Spatial.resources.dll
 C:\Users\Chen\Desktop\CloudTeam\AzureUpload\AzureUpload\bin\Debug\zh-Hant\System.Spatial.resources.dll
 C:\Users\Chen\Desktop\CloudTeam\AzureUpload\AzureUpload\obj\Debug\AzureUpload.csprojResolveAssemblyReference.cache
+C:\Users\Chen\Desktop\MDP\CloudTeam\AzureUpload\bin\Debug\AzureUpload.exe.config
+C:\Users\Chen\Desktop\MDP\CloudTeam\AzureUpload\obj\Debug\AzureUpload.exe
+C:\Users\Chen\Desktop\MDP\CloudTeam\AzureUpload\obj\Debug\AzureUpload.pdb
